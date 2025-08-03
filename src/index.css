@@ -1,1 +1,6 @@
 @import "tailwindcss";
+.logo {
+  background-image: url('../public/vite.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
