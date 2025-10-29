@@ -63,8 +63,28 @@ const CopyPass = () => {
     }
 
     if (passwordRef.current) {
-        navigator.clipboard.writeText(passwordRef.current.value);
-        toast.success("Password copied to clipboard!", { theme: "colored" });
+        const value = passwordRef.current.value;
+        try {
+            navigator.clipboard.writeText(value);
+            toast.success("Password copied to clipboard!", { theme: "colored" });
+            // save to localStorage history
+            try {
+                const KEY = 'passwordGenerator.history';
+                const raw = localStorage.getItem(KEY);
+                const list = raw ? JSON.parse(raw) : [];
+                const entry = { value, time: Date.now() };
+                // prepend and keep last 10
+                const updated = [entry, ...list].slice(0, 10);
+                localStorage.setItem(KEY, JSON.stringify(updated));
+                // notify other components in this window
+                window.dispatchEvent(new CustomEvent('passwordCopied', { detail: entry }));
+            } catch (e) {
+                // ignore storage errors
+                console.warn('Could not save password history', e);
+            }
+        } catch {
+            toast.error('Could not copy password to clipboard');
+        }
     }
 };
 
@@ -82,7 +102,7 @@ return (
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.5, ease: "easeOut" }}
-    className="bg-[#45d9d2] min-h-screen flex items-center justify-center px-4"
+    className="bg-[#45d9d2] flex items-center justify-center px-4 py-8"
     >
     <motion.div
         initial={{ y: 30, opacity: 0 }}
